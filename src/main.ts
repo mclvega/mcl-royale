@@ -128,10 +128,14 @@ function arrastrarParaMirar(
   alEmpezar?: () => void,
   alMover?: (dx: number, dy: number, t: number, my: number) => boolean | void,
   alSoltar?: () => void,
+  acepta: (e: PointerEvent) => boolean = () => true,
 ) {
   let toque = { id: -1, x: 0, y: 0, x0: 0, y0: 0, t0: 0 };
   el.addEventListener('pointerdown', (e) => {
-    if (toque.id !== -1) return;
+    if (!acepta(e)) return;
+    // Si el toque anterior perdió la captura sin soltarse, se libera para no bloquear la cámara.
+    if (toque.id !== -1 && el.hasPointerCapture(toque.id)) return;
+    if (toque.id !== -1) alSoltar?.();
     e.preventDefault();
     el.setPointerCapture(e.pointerId);
     toque = { id: e.pointerId, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now() };
@@ -153,8 +157,12 @@ function arrastrarParaMirar(
   };
   el.addEventListener('pointerup', soltar);
   el.addEventListener('pointercancel', soltar);
+  el.addEventListener('lostpointercapture', soltar);
 }
 arrastrarParaMirar(zonaMirar);
+// Un segundo dedo en la zona del joystick (con el primero ya moviendo al jugador) también mira.
+const zonaJoystick = controles.querySelector<HTMLElement>('.zona-joystick')!;
+arrastrarParaMirar(zonaJoystick, undefined, undefined, undefined, (e) => e.pointerId !== entrada.idJoystick);
 
 let fuegoTactil = 0;
 const botonFuego = h('div', { class: 'fuego fuego-der', 'aria-label': 'Disparar (desliza hacia arriba para apuntar)', role: 'button' }, h('span', { text: '🔫' }), h('small', { text: '⇡ mira' }));

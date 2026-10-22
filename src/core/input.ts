@@ -43,7 +43,8 @@ export class Entrada {
     contenedor.append(zona);
 
     zona.addEventListener('pointerdown', (e) => {
-      if (this.toque.id !== -1) return;
+      // Un toque que perdió la captura sin soltarse no debe bloquear el joystick.
+      if (this.toque.id !== -1 && zona.hasPointerCapture(this.toque.id)) return;
       zona.setPointerCapture(e.pointerId);
       this.toque = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: e.clientX, y: e.clientY };
       this.base!.style.left = `${e.clientX}px`;
@@ -62,6 +63,7 @@ export class Entrada {
     };
     zona.addEventListener('pointerup', soltar);
     zona.addEventListener('pointercancel', soltar);
+    zona.addEventListener('lostpointercapture', soltar);
 
     const fila = document.createElement('div');
     fila.className = 'botones-tactiles';
@@ -82,6 +84,11 @@ export class Entrada {
       fila.append(b);
     }
     contenedor.append(fila);
+  }
+
+  /** Identificador del toque que maneja el joystick (-1 si no hay). */
+  get idJoystick() {
+    return this.toque.id;
   }
 
   /** Se llama una vez por paso de simulación. */
