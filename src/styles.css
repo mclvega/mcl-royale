@@ -192,3 +192,14 @@ body.tactil .ranura { width: 46px; height: 46px; }
 @media (max-width: 700px) { .ranura { width: 44px; height: 44px; } .ranura small { display: none; } }
 /* En táctil, los botones de acción a la derecha y el pequeño de disparo a la izquierda no tapan las ranuras. */
 body.tactil .botones-tactiles { max-width: 40%; }
+
+/* Horizontal por defecto: en el móvil en vertical, aviso para girarlo mientras se juega. */
+.girar { display: none; }
+@media (orientation: portrait) and (pointer: coarse) {
+  body.jugando .girar {
+    position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; gap: 12px; padding: 24px;
+    background: #000; color: #fff; text-align: center; font-weight: 700;
+  }
+  .girar span { font-size: 64px; }
+  .girar p { margin: 0; font-size: 1.1em; }
+}

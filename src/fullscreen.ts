@@ -29,11 +29,34 @@ export function salirPantallaCompleta(): void {
   p?.catch(() => undefined);
 }
 
+type Orientacion = 'landscape' | 'portrait';
+type PantallaConBloqueo = ScreenOrientation & { lock?: (o: Orientacion) => Promise<void> };
+
+/** Bloquea la orientación (solo funciona en pantalla completa y en Android; en iPhone no hace nada). */
+function bloquearOrientacion(o: Orientacion) {
+  try {
+    (screen.orientation as PantallaConBloqueo | undefined)?.lock?.(o)?.catch(() => undefined);
+  } catch {
+    // Navegador sin bloqueo de orientación.
+  }
+}
+
+/** Aviso para girar el móvil cuando se juega en vertical (lo muestra el CSS con `.girar`). */
+function avisoGirar() {
+  const aviso = document.createElement('div');
+  aviso.className = 'girar';
+  aviso.setAttribute('role', 'alert');
+  aviso.innerHTML = '<span aria-hidden="true">📱↻</span><p>Gira el móvil: este juego se juega en horizontal.</p>';
+  document.body.append(aviso);
+}
+
 /**
  * Los navegadores exigen un gesto para entrar en pantalla completa: con la opción activada,
  * el primer toque o tecla (p. ej. tras recargar la página) la activa.
+ * Con `orientacion`, al entrar en pantalla completa se bloquea en esa orientación (horizontal por defecto en los juegos de acción).
  */
-export function iniciarPantallaCompleta(activa: () => boolean): void {
+export function iniciarPantallaCompleta(activa: () => boolean, orientacion?: Orientacion): void {
+  if (orientacion === 'landscape') avisoGirar();
   const auto = () => {
     if (activa() && !descartada && !enPantallaCompleta()) entrarPantallaCompleta();
   };
@@ -43,6 +66,7 @@ export function iniciarPantallaCompleta(activa: () => boolean): void {
   });
   const alCambiar = () => {
     if (!enPantallaCompleta()) descartada = true;
+    else if (orientacion) bloquearOrientacion(orientacion);
   };
   document.addEventListener('fullscreenchange', alCambiar);
   document.addEventListener('webkitfullscreenchange', alCambiar);

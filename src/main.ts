@@ -43,7 +43,7 @@ let render: Render3D | null = null;
 let modulo3d: Promise<typeof import('./game/render3d')> | null = null;
 const cargar3d = () => (modulo3d ??= import('./game/render3d'));
 
-iniciarPantallaCompleta(() => app.g.config.pantallaCompleta);
+iniciarPantallaCompleta(() => app.g.config.pantallaCompleta, 'landscape');
 app.aplicarConfig();
 
 /* ---------- Tamaño ---------- */
